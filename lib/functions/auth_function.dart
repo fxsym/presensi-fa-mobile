@@ -17,7 +17,7 @@ Future<http.Response> loginRequest(
     "device_name": deviceName,
   };
 
-  print(body);
+  print('Request Body: $body');
 
   final response = await http.post(
     url,
@@ -25,16 +25,21 @@ Future<http.Response> loginRequest(
     body: jsonEncode(body),
   );
 
-  print(response);
+  print('Response Body: ${response.body}');
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
-    if (data['token'] != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
+    final token = data['token'];
+    final userData = data['user'];
+
+    if (token != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      await prefs.setString('user', jsonEncode(userData));
     }
   } else {
-    throw Exception(jsonDecode(response.body)['message'] ?? 'Login gagal');
+    final message = jsonDecode(response.body)['message'] ?? 'Login gagal';
+    throw Exception(message);
   }
 
   return response;

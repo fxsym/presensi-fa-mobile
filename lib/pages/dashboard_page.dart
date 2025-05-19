@@ -1,61 +1,117 @@
-// File: lib/pages/dashboard_page.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
   @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  Map<String, dynamic>? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      setState(() {
+        _user = jsonDecode(userJson);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userName = _user?['name'] ?? 'User';
+    final userEmail = _user?['email'] ?? '';
+    final userImage = _user?['image'] ?? '';
+    final userClass = _user?['class'] ?? '';
+    final userNim = _user?['nim'] ?? '';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Selamat Datang di Dashboard!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Di sini kamu bisa melihat ringkasan informasi aplikasi atau statistik pengguna.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
+        child: _user == null
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _DashboardCard(
-                    icon: Icons.group,
-                    title: 'Pengguna',
-                    value: '150',
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundImage: NetworkImage(userImage),
+                        onBackgroundImageError: (_, __) => const Icon(Icons.person),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          Text(userEmail),
+                          Text('$userClass - $userNim'),
+                        ],
+                      ),
+                    ],
                   ),
-                  _DashboardCard(
-                    icon: Icons.check_circle,
-                    title: 'Presensi Hari Ini',
-                    value: '47',
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Selamat Datang di Dashboard!',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  _DashboardCard(
-                    icon: Icons.task,
-                    title: 'Tugas Aktif',
-                    value: '12',
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Berikut ringkasan informasi Anda:',
+                    style: TextStyle(fontSize: 16),
                   ),
-                  _DashboardCard(
-                    icon: Icons.settings,
-                    title: 'Pengaturan',
-                    value: '-',
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      children: [
+                        _DashboardCard(
+                          icon: Icons.accessibility,
+                          title: 'Role',
+                          value: _user?['role'] ?? '-',
+                        ),
+                        _DashboardCard(
+                          icon: Icons.check_circle,
+                          title: 'Jumlah Presensi',
+                          value: _user?['presence_count']?.toString() ?? '0',
+                        ),
+                        _DashboardCard(
+                          icon: Icons.attach_money,
+                          title: 'Honor',
+                          value:
+                              'Rp ${_user?['honor']?['amount']?.toString() ?? '0'}',
+                        ),
+                        _DashboardCard(
+                          icon: Icons.info,
+                          title: 'Status',
+                          value: _user?['status'] ?? '-',
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -92,6 +148,7 @@ class _DashboardCard extends StatelessWidget {
             Text(
               value,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
