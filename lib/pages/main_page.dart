@@ -256,10 +256,27 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to full presences list
-                    Navigator.pushNamed(context, '/presence-list');
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    final userString = prefs.getString('user');
+
+                    if (userString != null) {
+                      final userData = jsonDecode(userString);
+                      final role = userData['role'];
+
+                      Navigator.pushNamed(
+                        context,
+                        '/presence',
+                        arguments: {'role': role},
+                      );
+                    } else {
+                      // Handle jika data user tidak ditemukan
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Data user tidak ditemukan')),
+                      );
+                    }
                   },
+
                   child: const Text('Lihat Semua'),
                 ),
               ],
