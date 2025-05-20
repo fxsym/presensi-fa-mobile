@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:presensi_fa_mobile/pages/dashboard_page.dart';
 import 'package:presensi_fa_mobile/pages/login_page.dart';
 import 'package:presensi_fa_mobile/pages/main_page.dart';
+import 'package:presensi_fa_mobile/pages/presence_add_page.dart';
 import 'package:presensi_fa_mobile/pages/presence_page.dart';
 
 void main() {
@@ -30,6 +31,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => MainPage());
           case '/dashboard':
             return MaterialPageRoute(builder: (context) => DashboardPage());
+          case '/presence/add':
+            return MaterialPageRoute(builder: (context) => PresenceAddPage());
           default:
             return null;
         }
