@@ -28,7 +28,6 @@ Future<List<dynamic>> getPresences() async {
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
-    print(data);
 
     // Ambil hanya bagian presences
     final presences = data['presences'];

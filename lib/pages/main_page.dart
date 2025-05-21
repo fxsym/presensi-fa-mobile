@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:presensi_fa_mobile/functions/auth_function.dart';
 import 'package:presensi_fa_mobile/functions/presence_function.dart';
+import 'package:presensi_fa_mobile/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
@@ -14,18 +15,38 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final List<Map<String, dynamic>> _menuItems = [
     {'icon': Icons.access_time, 'label': 'Presence', 'route': '/presence'},
-    {'icon': Icons.person, 'label': 'Account', 'route': '/account'},
+    {'icon': Icons.person, 'label': 'Profile', 'route': '/profile'},
     {'icon': Icons.logout, 'label': 'Logout', 'route': '/login'},
   ];
   Map<String, dynamic>? userData;
+  User? userDataModel;
   List<dynamic> presenceList = [];
 
   void _onSelectMenu(int index) async {
-    if (_menuItems[index]['label'] == 'Logout') {
+    Navigator.pop(context); // Tutup drawer dulu
+    final label = _menuItems[index]['label'];
+
+    if (label == 'Logout') {
       await logoutRequest();
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      Navigator.pushNamed(context, _menuItems[index]['route']);
+      await Navigator.pushReplacementNamed(context, '/login');
+      print("Hallo");
+    } else if (label == 'Presence') {
+      final role = userData?['role'] ?? 'guest'; // ambil role dari userData
+      Navigator.pushNamed(context, '/presence', arguments: {'role': role});
+      print("Hallo");
+    } else if (label == 'Profile') {
+      Navigator.pushNamed(
+        context,
+        '/profile',
+        arguments: {
+          'user': userDataModel,
+          'onUpdateUser': (updatedUser) {
+            setState(() {
+              userDataModel = updatedUser;
+            });
+          },
+        },
+      );
     }
   }
 
@@ -33,6 +54,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _loadUserData();
+    _loadUserDataModel();
     _loadPresences();
   }
 
@@ -42,6 +64,17 @@ class _MainPageState extends State<MainPage> {
     if (userJson != null) {
       setState(() {
         userData = jsonDecode(userJson);
+      });
+    }
+  }
+
+  void _loadUserDataModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      final Map<String, dynamic> userMap = jsonDecode(userJson);
+      setState(() {
+        userDataModel = User.fromJson(userMap);
       });
     }
   }
@@ -97,7 +130,6 @@ class _MainPageState extends State<MainPage> {
                                 height: 48,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  // Fallback to initial if image fails to load
                                   return Text(
                                     userData?['name']?.toString().substring(
                                           0,
@@ -174,7 +206,6 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting Card
             Card(
               elevation: 0,
               color: colorScheme.primaryContainer,
@@ -217,8 +248,6 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Stats Grid
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -242,8 +271,6 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Recent Presences
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -259,30 +286,27 @@ class _MainPageState extends State<MainPage> {
                   onPressed: () async {
                     final prefs = await SharedPreferences.getInstance();
                     final userString = prefs.getString('user');
-
                     if (userString != null) {
                       final userData = jsonDecode(userString);
                       final role = userData['role'];
-
                       Navigator.pushNamed(
                         context,
                         '/presence',
                         arguments: {'role': role},
                       );
                     } else {
-                      // Handle jika data user tidak ditemukan
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Data user tidak ditemukan')),
+                        const SnackBar(
+                          content: Text('Data user tidak ditemukan'),
+                        ),
                       );
                     }
                   },
-
                   child: const Text('Lihat Semua'),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -347,7 +371,7 @@ class _MainPageState extends State<MainPage> {
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      // Navigate to presence detail
+                      // Navigate to detail presensi (jika ada)
                     },
                   ),
                 );
@@ -383,35 +407,21 @@ class _DashboardCard extends StatelessWidget {
         side: BorderSide(color: theme.dividerColor, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color),
-            ),
-            const SizedBox(height: 16),
+            Icon(icon, size: 36, color: color),
+            const SizedBox(height: 12),
             Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color: theme.textTheme.bodySmall?.color,
-              ),
+              value,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              value,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
             ),
           ],
         ),
