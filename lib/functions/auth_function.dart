@@ -48,6 +48,7 @@ Future<http.Response> loginRequest(
 Future<void> logoutRequest() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('token');
+  print(token);
 
   final response = await http.post(
     Uri.parse('${API_AUTH_URL}logout'),

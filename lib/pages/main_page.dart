@@ -13,52 +13,114 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final List<Map<String, dynamic>> _menuItems = [
-    {'icon': Icons.access_time, 'label': 'Presence', 'route': '/presence'},
-    {'icon': Icons.person, 'label': 'Profile', 'route': '/profile'},
-    {'icon': Icons.logout, 'label': 'Logout', 'route': '/login'},
-  ];
+  List<Map<String, dynamic>> _getMenuItems() {
+    final baseMenuItems = [
+      {'icon': Icons.access_time, 'label': 'Presence', 'route': '/presence'},
+      {'icon': Icons.person, 'label': 'Profile', 'route': '/profile'},
+      {'icon': Icons.logout, 'label': 'Logout', 'route': '/login'},
+    ];
+
+    if (userData?['role'] == 'admin') {
+      return [
+        ...baseMenuItems,
+        {'icon': Icons.people, 'label': 'Data Anggota', 'route': '/members'},
+        {
+          'icon': Icons.money,
+          'label': 'Rekap Honor',
+          'route': '/salary-summary',
+        },
+      ];
+    }
+    print(userData?['role']);
+    print(baseMenuItems);
+    return baseMenuItems;
+  }
+
   Map<String, dynamic>? userData;
   User? userDataModel;
   List<dynamic> presenceList = [];
+  late List<Map<String, dynamic>> _currentMenuItems;
 
   void _onSelectMenu(int index) async {
-    Navigator.pop(context); // Tutup drawer dulu
-    final label = _menuItems[index]['label'];
+    if (index >= _currentMenuItems.length || index < 0) return;
 
-    if (label == 'Logout') {
-      await logoutRequest();
-      await Navigator.pushReplacementNamed(context, '/login');
-      print("Hallo");
-    } else if (label == 'Presence') {
-      final role = userData?['role'] ?? 'guest'; // ambil role dari userData
-      Navigator.pushNamed(context, '/presence', arguments: {'role': role});
-      print("Hallo");
-    } else if (label == 'Profile') {
-      Navigator.pushNamed(
-        context,
-        '/profile',
-        arguments: {
-          'user': userDataModel,
-          'onUpdateUser': (updatedUser) {
-            setState(() {
-              userDataModel = updatedUser;
-            });
+    Navigator.pop(context); // Close drawer
+    final item = _currentMenuItems[index];
+
+    switch (item['label']) {
+      case 'Logout':
+        try {
+          // Show loading
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder:
+                (context) => const Center(child: CircularProgressIndicator()),
+          );
+
+          await logoutRequest();
+          if (mounted) {
+            Navigator.of(context).pop(); // Close loading
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        } catch (e) {
+          if (mounted) {
+            Navigator.of(context).pop(); // Close loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Logout failed: ${e.toString()}')),
+            );
+          }
+        }
+        break;
+
+      case 'Presence':
+        Navigator.pushNamed(
+          context,
+          '/presence',
+          arguments: {'role': userData?['role'] ?? 'guest'},
+        );
+        break;
+
+      case 'Profile':
+        Navigator.pushNamed(
+          context,
+          '/profile',
+          arguments: {
+            'user': userDataModel,
+            'onUpdateUser': (updatedUser) {
+              if (mounted) setState(() => userDataModel = updatedUser);
+            },
           },
-        },
-      );
+        );
+        break;
+
+      // Add cases for admin menus if needed
     }
+  }
+
+  Future<void> _initialize() async {
+    await _loadUserData();
+    await _loadUserDataModel();
+    await _loadPresences();
+    setState(() {
+      _currentMenuItems = _getMenuItems();
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _loadUserDataModel();
-    _loadPresences();
+    _initialize();
+    _updateMenuItems();
   }
 
-  void _loadUserData() async {
+  void _updateMenuItems() {
+    setState(() {
+      _currentMenuItems = _getMenuItems();
+    });
+  }
+
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user');
     if (userJson != null) {
@@ -68,7 +130,7 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void _loadUserDataModel() async {
+  Future<void> _loadUserDataModel() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user');
     if (userJson != null) {
@@ -79,7 +141,7 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void _loadPresences() async {
+  Future<void> _loadPresences() async {
     try {
       final data = await getPresences();
       setState(() {
@@ -191,11 +253,11 @@ class _MainPageState extends State<MainPage> {
                 ],
               ),
             ),
-            ..._menuItems.map(
+            ..._currentMenuItems.map(
               (item) => ListTile(
                 leading: Icon(item['icon']),
                 title: Text(item['label']),
-                onTap: () => _onSelectMenu(_menuItems.indexOf(item)),
+                onTap: () => _onSelectMenu(_currentMenuItems.indexOf(item)),
               ),
             ),
           ],
@@ -233,16 +295,32 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('Lakukan Presensi Sekarang'),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/presence/add');
-                        },
-                      ),
-                    ),
+                    userData == null
+                        ? const SizedBox.shrink() // Tidak tampilkan apa-apa saat userData belum tersedia
+                        : SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              userData!['role'] == 'admin'
+                                  ? 'Lakukan Validasi Sekarang'
+                                  : 'Lakukan Presensi Sekarang',
+                            ),
+                            onPressed: () {
+                              if (userData!['role'] == 'admin') {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/presence',
+                                  arguments: {
+                                    'role': userData?['role'] ?? 'guest',
+                                  },
+                                );
+                              } else {
+                                Navigator.pushNamed(context, '/presence/add');
+                              }
+                            },
+                          ),
+                        ),
                   ],
                 ),
               ),

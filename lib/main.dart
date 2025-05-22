@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/main',
+      initialRoute: '/login',
       onGenerateRoute: (settings) {
         if (settings.name == '/presence') {
           final args = settings.arguments as Map<String, dynamic>;
