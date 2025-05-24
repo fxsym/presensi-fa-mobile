@@ -31,8 +31,6 @@ class _MainPageState extends State<MainPage> {
         },
       ];
     }
-    print(userData?['role']);
-    print(baseMenuItems);
     return baseMenuItems;
   }
 
