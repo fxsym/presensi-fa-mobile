@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:presensi_fa_mobile/pages/dashboard_page.dart';
 import 'package:presensi_fa_mobile/pages/login_page.dart';
 import 'package:presensi_fa_mobile/pages/main_page.dart';
+import 'package:presensi_fa_mobile/pages/members_page.dart';
 import 'package:presensi_fa_mobile/pages/presence_add_page.dart';
 import 'package:presensi_fa_mobile/pages/presence_page.dart';
 import 'package:presensi_fa_mobile/pages/profile_page.dart';
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      initialRoute: '/main',
       onGenerateRoute: (settings) {
         if (settings.name == '/presence') {
           final args = settings.arguments as Map<String, dynamic>;
@@ -32,6 +33,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => MainPage());
           case '/dashboard':
             return MaterialPageRoute(builder: (context) => DashboardPage());
+          case '/members':
+            return MaterialPageRoute(builder: (context) => MembersScreen());
           case '/presence/add':
             return MaterialPageRoute(builder: (context) => PresenceAddPage());
           case '/profile':

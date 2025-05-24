@@ -95,6 +95,9 @@ class _MainPageState extends State<MainPage> {
         break;
 
       // Add cases for admin menus if needed
+      case 'Data Anggota':
+        Navigator.pushNamed(context, '/members');
+        break;
     }
   }
 
