@@ -9,40 +9,44 @@ const String apiUrl = String.fromEnvironment(
   defaultValue: 'http://presensi-fa.test/api/',
 );
 
-Future<Map<String, dynamic>> registerUser(
-  Map<String, String> fields, {
-  Map<String, String>? files,
+Future<http.StreamedResponse> registerUser({
+  required Map<String, String> fields,
+  File? imageFile, // mobile
+  Uint8List? webImageBytes, // web
+  required bool isWeb,
 }) async {
-  var uri = Uri.parse('${apiUrl}user');
-  var request = http.MultipartRequest('POST', uri);
+  final uri = Uri.parse('${apiUrl}user');
+  final request = http.MultipartRequest('POST', uri)
+    ..headers.addAll({
+      'Accept': 'application/json',
+    });
 
-  // Tambahkan fields
+  // Tambahkan field form
   fields.forEach((key, value) {
     request.fields[key] = value;
   });
 
-  // Tambahkan files (opsional)
-  if (files != null) {
-    for (var entry in files.entries) {
-      request.files.add(
-        await http.MultipartFile.fromPath(entry.key, entry.value),
-      );
-    }
+  // Tambahkan gambar
+  if (isWeb && webImageBytes != null) {
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'image', // nama field yang digunakan di backend
+        webImageBytes,
+        filename: 'web_upload.jpg',
+      ),
+    );
+  } else if (!isWeb && imageFile != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'image',
+        imageFile.path,
+      ),
+    );
   }
 
-  try {
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw json.decode(response.body);
-    }
-  } catch (e) {
-    throw {'message': 'Gagal Membuat Akun', 'errors': e.toString()};
-  }
+  return await request.send();
 }
+
 
 Future<Map<String, dynamic>> updateUser(
   Map<String, String> data,
