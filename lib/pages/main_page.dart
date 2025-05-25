@@ -27,7 +27,7 @@ class _MainPageState extends State<MainPage> {
         {
           'icon': Icons.money,
           'label': 'Rekap Honor',
-          'route': '/salary-summary',
+          'route': '/honors',
         },
       ];
     }
@@ -95,6 +95,10 @@ class _MainPageState extends State<MainPage> {
       // Add cases for admin menus if needed
       case 'Data Anggota':
         Navigator.pushNamed(context, '/members');
+        break;
+
+      case 'Rekap Honor':
+        Navigator.pushNamed(context, '/honors');
         break;
     }
   }

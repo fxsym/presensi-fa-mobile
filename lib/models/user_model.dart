@@ -1,3 +1,5 @@
+import 'package:presensi_fa_mobile/models/honor_model.dart';
+
 class User {
   final int id;
   final String? name;
@@ -9,6 +11,8 @@ class User {
   final String? image;
   final String? role;
   String? status;
+  int? presencecount;
+  Honor? honor;
 
   User({
     required this.id,
@@ -20,7 +24,9 @@ class User {
     this.email,
     this.image,
     this.role,
-    this.status
+    this.status,
+    this.presencecount,
+    this.honor
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -34,5 +40,7 @@ class User {
         image: json['image'],
         role: json['role'],
         status: json['status'],
+        presencecount: json['presence_count'],
+        honor: json['honor'] != null ? Honor.fromJson(json['honor']) : null,
       );
 }
