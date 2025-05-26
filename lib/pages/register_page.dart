@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'dart:convert';
-import 'package:presensi_fa_mobile/functions/user_function.dart'; // ganti sesuai path project
+import 'package:presensi_fa_mobile/functions/user_function.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -19,8 +19,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _picker = ImagePicker();
   io.File? _image;
   Uint8List? _webImage;
-  String? _lab;
-  String _note = '';
   bool _loading = false;
   String? _error;
   bool _isSuccess = false;
@@ -40,218 +38,310 @@ class _RegisterPageState extends State<RegisterPage> {
   final Map<String, String?> _errors = {};
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final picked = await _picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
 
-    if (picked != null) {
       if (kIsWeb) {
         final bytes = await picked.readAsBytes();
-        final size = bytes.lengthInBytes;
-
-        if (size > 2 * 1024 * 1024) {
-          setState(() {
-            _error = "Ukuran gambar tidak boleh lebih dari 2MB.";
-            _webImage = null;
-          });
-        } else {
-          setState(() {
-            _webImage = bytes;
-            _image = null;
-            _error = null;
-          });
+        if (bytes.lengthInBytes > 2 * 1024 * 1024) {
+          throw "Ukuran gambar tidak boleh lebih dari 2MB";
         }
+        setState(() {
+          _webImage = bytes;
+          _image = null;
+          _error = null;
+        });
       } else {
         final file = io.File(picked.path);
         final size = await file.length();
-
         if (size > 2 * 1024 * 1024) {
-          setState(() {
-            _error = "Ukuran gambar tidak boleh lebih dari 2MB.";
-            _image = null;
-          });
-        } else {
-          setState(() {
-            _image = file;
-            _webImage = null;
-            _error = null;
-          });
+          throw "Ukuran gambar tidak boleh lebih dari 2MB";
         }
+        setState(() {
+          _image = file;
+          _webImage = null;
+          _error = null;
+        });
       }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _image = null;
+        _webImage = null;
+      });
     }
   }
 
   Future<void> _submit() async {
-  final formValid = _formKey.currentState?.validate() ?? false;
-  if (!formValid) return;
-  _formKey.currentState?.save();
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    _formKey.currentState?.save();
 
-  if ((kIsWeb ? _webImage == null : _image == null)) {
-    setState(() => _error = "Gambar wajib diunggah.");
-    return;
-  }
+    if ((kIsWeb ? _webImage == null : _image == null)) {
+      setState(() => _error = "Gambar wajib diunggah");
+      return;
+    }
 
-  setState(() {
-    _isLoading = true;
-    _error = null;
-  });
+    if (_formData['password'] != _formData['confirmPassword']) {
+      setState(() => _error = "Password dan konfirmasi password tidak sama");
+      return;
+    }
 
-  try {
-    final response = await registerUser(
-      fields: _formData,
-      imageFile: _image,
-      webImageBytes: _webImage,
-      isWeb: kIsWeb,
-    );
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
+    try {
+      final response = await registerUser(
+        fields: _formData,
+        imageFile: _image,
+        webImageBytes: _webImage,
+        isWeb: kIsWeb,
+      );
+
       final resBody = await http.Response.fromStream(response);
       final jsonRes = json.decode(resBody.body);
 
-      if (jsonRes['success'] == true) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Berhasil'),
-            content: const Text('Akun berhasil dibuat. Silakan login.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (jsonRes['success'] == true) {
+          _showSuccessDialog();
+        } else {
+          throw jsonRes['message'] ?? 'Terjadi kesalahan';
+        }
       } else {
-        setState(() => _error = jsonRes['message'] ?? 'Terjadi kesalahan');
+        throw "Gagal registrasi: ${jsonRes['message'] ?? resBody.body}";
       }
-    } else {
-      final resBody = await response.stream.bytesToString();
-      setState(() => _error = "Gagal registrasi: $resBody");
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-  } catch (e) {
-    setState(() => _error = "Gagal registrasi: ${e.toString()}");
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
   }
-}
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Registrasi Berhasil'),
+        content: const Text('Akun Anda berhasil dibuat. Silakan login untuk melanjutkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextField(
     String label,
     String key, {
     bool isPassword = false,
     TextInputType? keyboardType,
+    String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      obscureText: isPassword,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        errorText: _errors[key],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        obscureText: isPassword,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.blue),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        validator: validator ?? (val) => val?.isEmpty == true ? 'Field ini wajib diisi' : null,
+        onSaved: (val) => _formData[key] = val ?? '',
       ),
-      onSaved: (val) => _formData[key] = val ?? '',
-      validator: (val) {},
     );
+  }
+
+  Widget _buildImagePreview() {
+    if (_image != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(
+          _image!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (_webImage != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.memory(
+          _webImage!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return const Icon(Icons.person, size: 100, color: Colors.blue);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(color: Colors.black.withOpacity(0.3)),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                color: Colors.white.withOpacity(0.85),
-                elevation: 8,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Buat Akun',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _pickImage,
-                          icon: const Icon(Icons.photo),
-                          label: const Text('Pilih Foto Profil'),
-                        ),
-                        if (_errors['image'] != null)
-                          Text(
-                            _errors['image']!,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        const SizedBox(height: 12),
-                        _buildTextField('Nama', 'name'),
-                        const SizedBox(height: 8),
-                        _buildTextField('NIM', 'nim'),
-                        const SizedBox(height: 8),
-                        _buildTextField('Kelas', 'class'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          'Nomor Telepon',
-                          'phone',
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField('Username', 'username'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          'Email',
-                          'email',
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          'Password',
-                          'password',
-                          isPassword: true,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          'Konfirmasi Password',
-                          'confirmPassword',
-                          isPassword: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _isLoading
-                            ? const CircularProgressIndicator()
-                            : ElevatedButton(
-                              onPressed: _submit,
-                              child: const Text('Register'),
+      appBar: AppBar(
+        title: const Text('Daftar Akun Baru'),
+        backgroundColor: Colors.blue,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                _buildImagePreview(),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.camera_alt, color: Colors.white),
+                                      onPressed: _pickImage,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed:
-                              () => Navigator.pushReplacementNamed(
-                                context,
-                                '/login',
+                            if (_error != null && _error!.contains("Gambar"))
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
                               ),
-                          child: const Text('Sudah punya akun? Login di sini'),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildTextField('Nama Lengkap', 'name'),
+                      _buildTextField('NIM', 'nim'),
+                      _buildTextField('Kelas', 'class'),
+                      _buildTextField(
+                        'Nomor Telepon',
+                        'phone',
+                        keyboardType: TextInputType.phone,
+                      ),
+                      _buildTextField('Username', 'username'),
+                      _buildTextField(
+                        'Email',
+                        'email',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (val) {
+                          if (val?.isEmpty == true) return 'Email wajib diisi';
+                          if (!val!.contains('@')) return 'Email tidak valid';
+                          return null;
+                        },
+                      ),
+                      _buildTextField(
+                        'Password',
+                        'password',
+                        isPassword: true,
+                        validator: (val) {
+                          if (val?.isEmpty == true) return 'Password wajib diisi';
+                          if (val!.length < 6) return 'Password minimal 6 karakter';
+                          return null;
+                        },
+                      ),
+                      _buildTextField(
+                        'Konfirmasi Password',
+                        'confirmPassword',
+                        isPassword: true,
+                      ),
+                      const SizedBox(height: 16),
+                      if (_error != null && !_error!.contains("Gambar"))
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Daftar Sekarang',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                        child: RichText(
+                          text: const TextSpan(
+                            text: 'Sudah punya akun? ',
+                            style: TextStyle(color: Colors.grey),
+                            children: [
+                              TextSpan(
+                                text: 'Login di sini',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
