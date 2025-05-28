@@ -9,6 +9,7 @@ import 'package:presensi_fa_mobile/pages/presence_add_page.dart';
 import 'package:presensi_fa_mobile/pages/presence_page.dart';
 import 'package:presensi_fa_mobile/pages/profile_page.dart';
 import 'package:presensi_fa_mobile/pages/register_page.dart';
+import 'package:presensi_fa_mobile/pages/splash_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      initialRoute: '/splash',
       onGenerateRoute: (settings) {
         if (settings.name == '/presence') {
           final args = settings.arguments as Map<String, dynamic>;
@@ -32,6 +33,8 @@ class MyApp extends StatelessWidget {
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(builder: (context) => HomePage());
+          case '/splash':
+            return MaterialPageRoute(builder: (context) => SplashScreen());
           case '/login':
             return MaterialPageRoute(builder: (context) => LoginPage());
           case '/register':
