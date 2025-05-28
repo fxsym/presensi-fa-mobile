@@ -77,11 +77,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     _formKey.currentState?.save();
 
-    if ((kIsWeb ? _webImage == null : _image == null)) {
-      setState(() => _error = "Gambar wajib diunggah");
-      return;
-    }
-
     if (_formData['password'] != _formData['confirmPassword']) {
       setState(() => _error = "Password dan konfirmasi password tidak sama");
       return;
@@ -102,13 +97,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final resBody = await http.Response.fromStream(response);
       final jsonRes = json.decode(resBody.body);
+      print(jsonRes);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        if (jsonRes['success'] == true) {
-          _showSuccessDialog();
-        } else {
-          throw jsonRes['message'] ?? 'Terjadi kesalahan';
-        }
+        _showSuccessDialog();
+        print('Sukse');
       } else {
         throw "Gagal registrasi: ${jsonRes['message'] ?? resBody.body}";
       }
@@ -123,16 +116,20 @@ class _RegisterPageState extends State<RegisterPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Registrasi Berhasil'),
-        content: const Text('Akun Anda berhasil dibuat. Silakan login untuk melanjutkan.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-            child: const Text('OK'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Registrasi Berhasil'),
+            content: const Text(
+              'Akun Anda berhasil dibuat. Silakan login untuk melanjutkan.',
+            ),
+            actions: [
+              TextButton(
+                onPressed:
+                    () => Navigator.pushReplacementNamed(context, '/login'),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -158,9 +155,14 @@ class _RegisterPageState extends State<RegisterPage> {
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
-        validator: validator ?? (val) => val?.isEmpty == true ? 'Field ini wajib diisi' : null,
+        validator:
+            validator ??
+            (val) => val?.isEmpty == true ? 'Field ini wajib diisi' : null,
         onSaved: (val) => _formData[key] = val ?? '',
       ),
     );
@@ -170,12 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_image != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          _image!,
-          width: 100,
-          height: 100,
-          fit: BoxFit.cover,
-        ),
+        child: Image.file(_image!, width: 100, height: 100, fit: BoxFit.cover),
       );
     } else if (_webImage != null) {
       return ClipRRect(
@@ -230,7 +227,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(Icons.camera_alt, color: Colors.white),
+                                      icon: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                      ),
                                       onPressed: _pickImage,
                                     ),
                                   ),
@@ -273,8 +273,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         'password',
                         isPassword: true,
                         validator: (val) {
-                          if (val?.isEmpty == true) return 'Password wajib diisi';
-                          if (val!.length < 6) return 'Password minimal 6 karakter';
+                          if (val?.isEmpty == true)
+                            return 'Password wajib diisi';
+                          if (val!.length < 6)
+                            return 'Password minimal 6 karakter';
                           return null;
                         },
                       ),
@@ -302,23 +304,31 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Text(
+                                  'Daftar Sekarang',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Daftar Sekarang',
-                                style: TextStyle(fontSize: 16),
-                              ),
                       ),
                       const SizedBox(height: 16),
                       TextButton(
-                        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                        onPressed:
+                            () => Navigator.pushReplacementNamed(
+                              context,
+                              '/login',
+                            ),
                         child: RichText(
                           text: const TextSpan(
                             text: 'Sudah punya akun? ',

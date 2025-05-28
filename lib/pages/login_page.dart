@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -30,10 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacementNamed(context, '/main');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
     } finally {
       setState(() {
@@ -46,6 +43,11 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[50],
+      appBar: AppBar(
+        title: const Text('Masuk'),
+        backgroundColor: Colors.blue,
+        elevation: 0,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
@@ -137,23 +139,24 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: _isLoading
-                            ? SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                        child:
+                            _isLoading
+                                ? SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              )
-                            : Text(
-                                'Login',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                       ),
                     ),
                     SizedBox(height: 16),
@@ -161,9 +164,19 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         // Add forgot password functionality
                       },
-                      child: Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.blue[600]),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacementNamed(context, '/register');
+                        },
+                        child: Text(
+                          'Belum memiliki akun? Silahkan daftar terlebih dahulu',
+                          style: TextStyle(
+                            color: Colors.blue[600],
+                            decoration:
+                                TextDecoration
+                                    .underline, // agar terlihat seperti link
+                          ),
+                        ),
                       ),
                     ),
                   ],

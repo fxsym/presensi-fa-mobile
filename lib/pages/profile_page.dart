@@ -174,7 +174,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -253,17 +256,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ],
                     ),
                   ),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Colors.red[700],
-                          fontWeight: FontWeight.w500,
+                  _error != null
+                      ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: Colors.red[700],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ),
+                      )
+                      : const SizedBox.shrink(),
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(24),
@@ -282,11 +286,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          _buildInputField("Nama Lengkap", nameController, "name"),
-                          _buildInputField("Username", usernameController, "username"),
+                          _buildInputField(
+                            "Nama Lengkap",
+                            nameController,
+                            "name",
+                          ),
+                          _buildInputField(
+                            "Username",
+                            usernameController,
+                            "username",
+                          ),
                           _buildInputField("NIM", nimController, "nim"),
                           _buildInputField("Kelas", classController, "class"),
-                          _buildInputField("Nomor HP", phoneController, "phone"),
+                          _buildInputField(
+                            "Nomor HP",
+                            phoneController,
+                            "phone",
+                          ),
                           _buildInputField("Email", emailController, "email"),
                           const SizedBox(height: 24),
                           SizedBox(
@@ -302,22 +318,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                 ),
                                 elevation: 2,
                               ),
-                              child: _loading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
+                              child:
+                                  _loading
+                                      ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                      : const Text(
+                                        "SIMPAN PERUBAHAN",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    )
-                                  : const Text(
-                                      "SIMPAN PERUBAHAN",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
                             ),
                           ),
                         ],
