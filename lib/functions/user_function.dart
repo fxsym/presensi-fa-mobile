@@ -92,19 +92,14 @@ Future<Map<String, dynamic>> updateUser(
           );
         }
       }
-
-      print(data);
-      print(imageFile);
       var streamedResponse = await request.send();
       response = await http.Response.fromStream(streamedResponse);
-      print('Multipart POST sent: $uri');
     } else {
       response = await http.patch(
         uri,
         headers: {...headers, 'Content-Type': 'application/json'},
         body: json.encode(data),
       );
-      print('PATCH sent: $uri');
     }
 
     print('Status Code: ${response.statusCode}');
@@ -114,7 +109,6 @@ Future<Map<String, dynamic>> updateUser(
 
     if (response.statusCode == 200) {
       final userData = responseJson['user'] ?? responseJson;
-      print(userData);
       await prefs.setString('user', jsonEncode(userData));
       return responseJson;
     } else {

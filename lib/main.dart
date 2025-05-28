@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/main',
       onGenerateRoute: (settings) {
         if (settings.name == '/presence') {
           final args = settings.arguments as Map<String, dynamic>;
