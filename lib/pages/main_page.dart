@@ -24,11 +24,7 @@ class _MainPageState extends State<MainPage> {
       return [
         ...baseMenuItems,
         {'icon': Icons.people, 'label': 'Data Anggota', 'route': '/members'},
-        {
-          'icon': Icons.money,
-          'label': 'Rekap Honor',
-          'route': '/honors',
-        },
+        {'icon': Icons.money, 'label': 'Rekap Honor', 'route': '/honors'},
       ];
     }
     return baseMenuItems;
@@ -173,14 +169,14 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: const Text('Dashboard Utama'),
         elevation: 0,
-        backgroundColor: colorScheme.primaryContainer,
+        backgroundColor: Colors.blue[400],
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: colorScheme.primaryContainer),
+              decoration: BoxDecoration(color: Colors.blue[400]),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -205,7 +201,7 @@ class _MainPageState extends State<MainPage> {
                                         'U',
                                     style: TextStyle(
                                       fontSize: 20,
-                                      color: colorScheme.onPrimary,
+                                      color: Colors.white,
                                     ),
                                   );
                                 },
@@ -245,14 +241,14 @@ class _MainPageState extends State<MainPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     userData?['email'] ?? '',
                     style: TextStyle(
                       fontSize: 14,
-                      color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -275,7 +271,7 @@ class _MainPageState extends State<MainPage> {
           children: [
             Card(
               elevation: 0,
-              color: colorScheme.primaryContainer,
+              color: Colors.blue[400],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -286,17 +282,14 @@ class _MainPageState extends State<MainPage> {
                   children: [
                     Text(
                       'Selamat Datang,',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: colorScheme.onPrimaryContainer.withOpacity(0.8),
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                     Text(
                       userData?['name'] ?? 'User',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -305,6 +298,12 @@ class _MainPageState extends State<MainPage> {
                         : SizedBox(
                           width: double.infinity,
                           child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  Colors.blue[800], // Warna latar belakang
+                              foregroundColor:
+                                  Colors.white, // Warna teks dan ikon
+                            ),
                             icon: const Icon(Icons.add),
                             label: Text(
                               userData!['role'] == 'admin'
@@ -385,7 +384,7 @@ class _MainPageState extends State<MainPage> {
                       );
                     }
                   },
-                  child: const Text('Lihat Semua'),
+                  child: const Text('Lihat Semua', style: TextStyle(color: Colors.blue),),
                 ),
               ],
             ),
