@@ -18,8 +18,6 @@ Future<http.Response> loginRequest(
     "device_name": deviceName,
   };
 
-  print('Request Body: $body');
-
   final response = await http.post(
     url,
     headers: {"Content-Type": "application/json"},
@@ -40,6 +38,7 @@ Future<http.Response> loginRequest(
     }
   } else {
     final message = jsonDecode(response.body)['message'] ?? 'Login gagal';
+    print(message);
     throw Exception(message);
   }
 
