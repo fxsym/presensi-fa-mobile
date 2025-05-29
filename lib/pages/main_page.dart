@@ -297,7 +297,9 @@ class _MainPageState extends State<MainPage> {
                         ? const SizedBox.shrink() // Tidak tampilkan apa-apa saat userData belum tersedia
                         : SizedBox(
                           width: double.infinity,
-                          child: FilledButton.icon(
+                          child: userData!['status'] == 'inactive'
+                          ? Text("Akun anda belum diaktivasi, silahkan hubungi admin")
+                          : FilledButton.icon(
                             style: FilledButton.styleFrom(
                               backgroundColor:
                                   Colors.blue[800], // Warna latar belakang
