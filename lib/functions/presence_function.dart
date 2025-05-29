@@ -6,7 +6,8 @@ import 'dart:io';
 
 const String apiUrl = String.fromEnvironment(
   'API_URL',
-  defaultValue: 'http://presensi-fa.test/api/',
+  // defaultValue: 'http://presensi-fa.test/api/',
+  defaultValue: 'https://presensi-fa-api.vercel.app/api/api/',
 );
 
 Future<String?> _getToken() async {

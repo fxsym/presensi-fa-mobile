@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String API_AUTH_URL = 'http://presensi-fa.test/api/auth/';
+// const String API_AUTH_URL = 'http://presensi-fa.test/api/auth/';
+const String API_AUTH_URL = 'https://presensi-fa-api.vercel.app/api/api/auth/';
 
 Future<http.Response> loginRequest(
   String userInput,

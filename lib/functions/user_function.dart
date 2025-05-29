@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String apiUrl = String.fromEnvironment(
   'API_URL',
-  defaultValue: 'http://presensi-fa.test/api/',
+  // defaultValue: 'http://presensi-fa.test/api/',
+  defaultValue: 'https://presensi-fa-api.vercel.app/api/api/',
 );
 
 Future<http.StreamedResponse> registerUser({
