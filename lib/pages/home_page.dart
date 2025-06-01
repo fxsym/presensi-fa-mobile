@@ -267,7 +267,7 @@ class HomePage extends StatelessWidget {
                             ),
                             const SizedBox(height: 24),
                             const Text(
-                              'Laporan Otomatis',
+                              'Rekap Honor',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
@@ -276,7 +276,7 @@ class HomePage extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Hasilkan laporan kehadiran secara otomatis dalam berbagai format yang siap digunakan.',
+                              'Catat total presensi kehadiran sebagai rekapan honor asisten.',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF4B5563),
