@@ -276,7 +276,7 @@ class HomePage extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Catat total presensi kehadiran sebagai rekapan honor asisten.',
+                              'Mencatat total presensi kehadiran sebagai rekapan honor asisten.',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF4B5563),
